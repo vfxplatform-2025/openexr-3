@@ -38,9 +38,19 @@ def build(source_path, build_path, install_path, targets):
     # 1) 빌드 디렉터리 정리
     clean_build_dir(build_path)
 
-    # 2) install override (서버 경로만 클린업, ~/packages는 rez가 관리)
+    # 2) variant 서브경로 구성 (imath-3.1.9 or imath-3.2.0)
+    imath_ver = os.environ.get("REZ_IMATH_VERSION", "")
+    variant_subpath = f"imath-{imath_ver}" if imath_ver else ""
+
+    # 3) install override (서버 경로 + variant 하위 디렉터리)
+    server_base = f"/core/Linux/APPZ/packages/openexr/{version}"
     if "install" in targets:
-        install_root = f"/core/Linux/APPZ/packages/openexr/{version}"
+        variant_idx = int(os.environ.get("REZ_BUILD_VARIANT_INDEX", "0"))
+        # 첫 번째 variant 빌드 시 기존 전체 폴더 클린업 (구버전 flat 구조 제거)
+        if variant_idx == 0:
+            clean_install_dir(server_base)
+            os.makedirs(server_base, exist_ok=True)
+        install_root = os.path.join(server_base, variant_subpath) if variant_subpath else server_base
         clean_install_dir(install_root)
     else:
         install_root = install_path
@@ -84,9 +94,9 @@ def build(source_path, build_path, install_path, targets):
     if "install" in targets:
         run_cmd("cmake --install .", cwd=openexr_build)
 
-        server_base = f"/core/Linux/APPZ/packages/openexr/{version}"
-        os.makedirs(server_base, exist_ok=True)
-        copy_package_py(source_path, server_base)
+        pkg_base = f"/core/Linux/APPZ/packages/openexr/{version}"
+        os.makedirs(pkg_base, exist_ok=True)
+        copy_package_py(source_path, pkg_base)
 
         # 빌드 마커
         marker = os.path.join(build_path, "build.rxt")

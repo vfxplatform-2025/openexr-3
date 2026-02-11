@@ -5,11 +5,13 @@ authors = ["ILM", "ASWF"]
 description = "OpenEXR image file format library"
 
 requires = [
-    "imath-3.2.0",
     "zlib-1.2.13",
 ]
 
-variants = []
+variants = [
+    ["imath-3.1.9"],
+    ["imath-3.2.0"],
+]
 
 build_requires = [
     "cmake-3.26.5",
